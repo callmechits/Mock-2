@@ -14,7 +14,7 @@ export const CONFIG = {
   TAGLINE: 'Full-length JEE Main mocks in a real CBT-style interface.',
 
   SUPABASE_URL: 'https://kslzkbuymqkcolbpmvay.supabase.co/rest/v1/',
-  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzbHprYnV5bXFrY29sYnBtdmF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMxMDQwNjgsImV4cCI6MjEwODY4MDA2OH0.iFef8sNqFT4lJaTDAlUUaoCIhm7AemS2gXzDfzurV-8',
+  SUPABASE_KEY: 'sb_publishable_R520lh-4aV7OaX6CbTxaHQ_Mt3faJIZ',
 
   // Students never create accounts: they type their Reddit username + PIN on
   // the exam page (Supabase anonymous sign-in). These are for STAFF only —
