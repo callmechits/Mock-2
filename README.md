@@ -3,9 +3,7 @@
 Full-length **JEE Main** mock tests (75 questions · 25 per subject · Section A 20 MCQ + Section B 5 numerical · +4/−1) in a CBT-style interface, with server-side timing and scoring, ranks and NTA-style percentiles, and a staff console where your team writes questions together in real time.
 
 - **Students** don't make accounts. On the exam page they type their **Reddit username + a PIN** → take the paper fullscreen → when it closes, see score, rank, percentile, time per question and solutions (from any device, with the same username + PIN) → practise it again later (unranked).
-- **Staff** (Google/Discord login): 75-slot editor with live preview, LaTeX (`$…$`) and chemistry (`\ce{…}`), paste-a-screenshot images, **bulk image upload by file name**, bulk text import, **full backups with images**, second-person verification, version history, live presence ("Riya is on P14"), conflict-safe saving, preview-as-student, publishing, live exam monitor, extra time, PIN resets, username bans, re-scoring after answer-key changes, and a **Flush personal data** button.
-
-Try it now with zero setup: `python tools/serve.py`, then open http://localhost:5173. With `SUPABASE_URL` empty the site runs as an **offline demo** in your browser. Take a paper with any username + PIN; open **Staff → Continue as demo admin** for the console. (Demo students on the finished paper all use PIN `1234`.)
+- **Staff** (Google login): 75-slot editor with live preview, LaTeX (`$…$`) and chemistry (`\ce{…}`), paste-a-screenshot images, **bulk image upload by file name**, bulk text import, **full backups with images**, second-person verification, version history, live presence ("chits is on P14"), conflict-safe saving, preview-as-student, publishing, live exam monitor, extra time, PIN resets, username bans, re-scoring after answer-key changes, and a **Flush personal data** button.
 
 ---
 
@@ -26,8 +24,6 @@ Try it now with zero setup: `python tools/serve.py`, then open http://localhost:
 - Someone could take a paper as `u/someone_else` before the real person does. Once taken, the PIN protects it. If it happens, ban that username or **Reset attempt** from the monitor.
 - One person can take a paper several times under different usernames, by using another browser for each. Scores are hidden until the paper closes, so extra attempts can't be used to find answers — they only add leaderboard noise. Ban those names.
 
-If you later want proof of Reddit ownership, the usual fix is a "DM this code to u/YourBot" step. Ask and I can add it.
-
 ---
 
 ## What changed from the old site
@@ -42,8 +38,6 @@ If you later want proof of Reddit ownership, the usual fix is a "DM this code to
 | Admin password check via a public RPC. | **Role-based staff** (admin / editor) on real accounts; editors can't publish or escalate. |
 | `innerHTML` with user data everywhere (XSS). | Everything user-supplied is escaped or sanitised (DOMPurify allow-list), plus a strict Content-Security-Policy. |
 | Anyone could upload images. | Staff-only uploads, random unguessable file names, images only, 3 MB cap. |
-
-Run `supabase/self_test.sql` after setup: it plays an anonymous visitor, students on several devices, an editor and an admin, tries ~60 things that must work or must be refused, cleans up after itself, and prints PASS/FAIL.
 
 Fullscreen, tab-switch logging, copy/print blocking and the `u/username` watermark only discourage cheating. They're recorded and shown in the live monitor, but they don't decide anything: scoring, timing and keeping answers secret never depend on the browser.
 
@@ -78,49 +72,13 @@ No server code to run or maintain; `web/` is plain static files.
 
 ---
 
-## Setup (about 30–45 minutes)
 
-### 1. Supabase project
-1. Create a **new** project at [supabase.com](https://supabase.com), region **Mumbai (ap-south-1)**. Don't reuse the old one: its key is public and its tables were writable.
-2. Upgrade to **Pro** ($25/month). Free projects pause after a week of inactivity and are far too small for 5,000 people. Keep the **spend cap** on in billing.
-
-### 2. Sign-in
-Supabase → **Authentication → Sign In / Providers**:
-- Turn on **Allow anonymous sign-ins** (students).
-- Turn **off** email sign-ups if you don't use them.
-- **Google** (staff): Google Cloud Console → APIs & Services → Credentials → *Create OAuth client ID* (Web), redirect URI `https://<your-project-ref>.supabase.co/auth/v1/callback`, paste ID/secret into Supabase. Staff only, so "Testing" mode is fine if you add each staff email as a test user; otherwise press *Publish app*.
-- **Discord** (optional, staff): discord.com/developers → New Application → OAuth2 → same callback URL.
-
-Supabase → **Authentication → Rate Limits**: the anonymous sign-in limit is per IP address (default 30/hour). College Wi-Fi and Jio/Airtel mobile data put thousands of students behind shared IPs, so **raise it (e.g. 2,000/hour) before exam day**, and turn on the bot check below so that's safe.
-
-**Bot check (recommended):** create a free **Cloudflare Turnstile** widget for your domain, put its *site key* in `TURNSTILE_SITE_KEY` in `web/js/config.js`, and in Supabase → **Authentication → Attack Protection** enable CAPTCHA with Turnstile and its *secret key*. It's usually invisible to students.
-
-Supabase → **Authentication → URL Configuration**: *Site URL* = your domain, and add `https://your-domain/**` to *Redirect URLs*.
-
-### 3. Database
-1. **Database → Extensions:** enable **pg_cron** (Vault and pgcrypto are on by default).
-2. **SQL Editor:** paste all of [`supabase/schema.sql`](supabase/schema.sql) → Run. Safe to re-run after updates; it also upgrades a project that ran the first version.
-3. **SQL Editor:** paste [`supabase/self_test.sql`](supabase/self_test.sql) → Run. Every row should say **PASS**. If anything fails, don't launch — send me the output.
-
-Never delete the Vault secret **`jeemock_identity_key`** — without it, usernames on unflushed papers can't be matched or decrypted.
-
-### 4. Realtime
-Supabase → **Realtime → Settings:** turn **off "Allow public access"** so only the private, staff-only channels work.
-
-### 5. Configure and deploy the site
-1. Edit [`web/js/config.js`](web/js/config.js): `SUPABASE_URL` (Project Settings → Data API), `SUPABASE_KEY` (Project Settings → API Keys → **publishable** / legacy **anon** key — public by design; **never** the secret/service_role key), `STAFF_AUTH_PROVIDERS`, and optionally `TURNSTILE_SITE_KEY`.
-2. Put the project in a **new** GitHub repo, then Cloudflare → **Workers & Pages → Create → Pages → Connect to Git**. Build command: *none*. Output directory: `web`. (Or *Direct Upload* the `web` folder.)
-3. Add your domain in Pages. `web/_headers` applies the security headers automatically.
-
-### 6. Make yourself admin
-Open `your-domain/admin.html`, sign in with Google/Discord once, then in the SQL Editor:
-
-```sql
+### Make yourself admin
+```
 insert into public.staff (user_id, role)
 select id, 'admin' from auth.users where email = 'you@example.com'
 on conflict (user_id) do update set role = 'admin';
 ```
-
 Add editors/admins from **Console → People → Team** (they must sign in once first).
 
 ---
