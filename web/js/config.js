@@ -13,7 +13,7 @@ export const CONFIG = {
   SITE_NAME: 'JEE Mains Mock',
   TAGLINE: 'Full-length JEE Main mocks in a real CBT-style interface.',
 
-  SUPABASE_URL: 'https://kslzkbuymqkcolbpmvay.supabase.co/rest/v1/',
+  SUPABASE_URL: 'https://kslzkbuymqkcolbpmvay.supabase.co',
   SUPABASE_KEY: 'sb_publishable_R520lh-4aV7OaX6CbTxaHQ_Mt3faJIZ',
 
   // Students never create accounts: they type their Reddit username + PIN on
