@@ -12,7 +12,7 @@ const sections = {
   upcoming: h('section', { class: 'home-section', hidden: true }, h('h2', { class: 'section-title' }, 'Upcoming'), lists.upcoming),
   past: h('section', { class: 'home-section', hidden: true }, h('h2', { class: 'section-title' }, 'Past papers'), lists.past),
 };
-const empty = h('div', { class: 'card empty', hidden: true }, 'No papers have been published yet. Check back soon.');
+const empty = h('div', { class: 'card empty', hidden: true }, 'No papers have been published yet. Check back soon ;).');
 const loading = h('div', { class: 'paper-grid' }, [1, 2, 3].map(() => h('div', { class: 'skeleton', style: { height: '190px' } })));
 const topList = h('ol', { class: 'top-list' });
 const topCard = h('aside', { class: 'card card-pad top-card', hidden: true },
@@ -22,10 +22,10 @@ const topCard = h('aside', { class: 'card card-pad top-card', hidden: true },
 document.body.append(
   h('main', { class: 'container home' },
     h('section', { class: 'hero' },
-      h('h1', null, 'JEE Main mocks that feel like ', h('em', null, 'the real thing.')),
+      h('h1', null, 'JEE Main mocks that feel like ', h('em', null, 'the real thing (free rep session).')),
       h('p', { class: 'hero-sub' }, CONFIG.TAGLINE),
       h('div', { class: 'hero-chips' },
-        chip('75 questions · 3 hours'), chip('+4 / −1 marking'), chip('Server-timed & auto-saved'), chip('Ranks & NTA-style percentiles'))),
+        chip('75 questions · 3 hours'), chip('+4 / −1 marking'), chip('Server-timed & auto-saved'), chip('Ranks and percentiles will be displayed'))),
     loading, empty, sections.live, sections.upcoming,
     h('div', { class: 'home-split' }, sections.past, topCard)));
 footer();
