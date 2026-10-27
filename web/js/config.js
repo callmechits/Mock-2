@@ -19,7 +19,7 @@ export const CONFIG = {
   // Students never create accounts: they type their Reddit username + PIN on
   // the exam page (Supabase anonymous sign-in). These are for STAFF only —
   // enable the same ones in Supabase → Authentication → Sign In / Providers.
-  STAFF_AUTH_PROVIDERS: ['google']
+  STAFF_AUTH_PROVIDERS: ['google'],
 
   // Optional but recommended: Cloudflare Turnstile site key. When set, students
   // solve an invisible bot check before their anonymous session is created.
