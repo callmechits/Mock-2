@@ -37,6 +37,6 @@ export const CONFIG = {
   HOSTING_COST: '$25 a month',
 
   // Optional link in the header, e.g. your subreddit or Discord server.
-  COMMUNITY_URL: 'https://www.reddit.com/r/JEEAdv27dailyupdates/',
-  COMMUNITY_LABEL: 'Reddit',
+  COMMUNITY_URL: '',
+  COMMUNITY_LABEL: '',
 };
