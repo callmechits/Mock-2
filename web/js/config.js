@@ -33,7 +33,7 @@ export const CONFIG = {
   // e.g. a UPI payment link (upi://pay?pa=you@bank&pn=Your%20Name),
   // Buy Me a Coffee, Ko-fi or GitHub Sponsors.
   DONATE_URL: 'https://buymeacoffee.com/callmechits',
-  DONATE_LABEL: 'You have made a real contribution to the server',
+  DONATE_LABEL: 'If you actually do this, I really really thank you for your kindness',
   HOSTING_COST: '$25 a month',
 
   // Optional link in the header, e.g. your subreddit or Discord server.
