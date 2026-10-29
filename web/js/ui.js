@@ -375,6 +375,7 @@ export async function mountHeader(active = '') {
       h('nav', { class: 'nav-links' },
         link('./', 'Mocks', 'home'),
         link('leaderboard.html', 'Leaderboard', 'leaderboard'),
+        link('about.html', 'About', 'about'),
         CONFIG.COMMUNITY_URL ? h('a', { href: CONFIG.COMMUNITY_URL, target: '_blank', rel: 'noopener' }, CONFIG.COMMUNITY_LABEL || 'Community') : null),
       h('div', { class: 'nav-right' }, themeBtn, authSlot)));
   document.body.prepend(header);
