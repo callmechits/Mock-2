@@ -102,6 +102,15 @@
 
 .lookup-card { max-width: 560px; }
 
+/* ── About ─────────────────────────────────────────────────────────────────── */
+.about { max-width: 820px; }
+.about-block { margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px; }
+.about-block h2 { font-size: 18px; }
+.about-block p { color: var(--text-2); }
+.about-block code { font-family: var(--mono); font-size: .92em; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+.steps { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 8px; color: var(--text-2); }
+.support { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); background: linear-gradient(180deg, var(--accent-soft), var(--surface) 60%); }
+
 /* ── Leaderboard ───────────────────────────────────────────────────────────── */
 .lb-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
 .lb-controls .select { max-width: 360px; }
