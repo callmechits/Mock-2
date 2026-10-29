@@ -103,7 +103,7 @@ Add editors/admins from **Console → People → Team** (they must sign in once 
 
 ---
 
-## Running an exam
+## How I run an exam
 
 **Day before:** all 75 slots ready and verified → *Preview as student* → **Publish**. Raise the anonymous sign-in rate limit.
 
@@ -127,8 +127,6 @@ Add editors/admins from **Console → People → Team** (they must sign in once 
 - **During:** a save after each answer (debounced) + a 90 s heartbeat ≈ 50–100 small writes/second at 5,000 users, rate-limited per attempt.
 - **Results:** computed once per paper, then served from a precomputed leaderboard.
 - **Realtime** is staff-only.
-
-Recommended: **Pro + Small compute** normally, **Medium** on exam days (billed hourly). Daily backups are included in Pro; add Point-in-Time Recovery for restore-to-any-second. Optional: Database → Network restrictions; turn off GraphQL if unused; vendor the three CDN libraries (supabase-js 2.94.0, KaTeX 0.16.22, DOMPurify 3.2.6) into `web/vendor/`.
 
 ---
 
