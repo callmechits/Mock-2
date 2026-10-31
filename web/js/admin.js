@@ -175,6 +175,8 @@ function paperForm(p, { submitLabel, onSubmit, disabled = false }) {
     numC: inp({ type: 'number', min: 0, max: 10, value: p?.num_correct ?? 4 }),
     numW: inp({ type: 'number', min: -10, max: 0, value: p?.num_wrong ?? -1 }),
     practice: h('input', { type: 'checkbox', checked: p ? p.allow_practice : true, disabled }),
+    releaseLater: h('input', { type: 'checkbox', checked: !!p?.results_release_at, disabled }),
+    release: inp({ type: 'datetime-local', value: p?.results_release_at ? toLocalInput(p.results_release_at) : '' }),
   };
   f.description.value = p?.description || '';
   const err = h('p', { class: 'field-error' });
@@ -197,8 +199,11 @@ function paperForm(p, { submitLabel, onSubmit, disabled = false }) {
       field('Entry window (minutes)', f.entry, 'How long after opening a student may start'),
       field('Duration (minutes)', f.duration, 'JEE Main: 180')),
     h('div', { class: 'grid-2' },
-      field('Closes at', f.ends, 'Results publish automatically after this'),
+      field('Closes at', f.ends, 'No new answers after this'),
       h('label', { class: 'check', style: { alignSelf: 'center' } }, f.auto, h('span', null, 'Auto: opening + entry window + duration (latest starter still gets full time)'))),
+    h('div', { class: 'stack release-box' },
+      h('label', { class: 'check' }, f.releaseLater, h('span', null, 'Hold results back until a set time (leaderboard, scores, solutions and practice all wait)')),
+      field('Release results at', f.release, 'Your local time. Leave unticked to publish as soon as the paper closes. You can also press “Release results now” later.')),
     h('details', { class: 'adv' }, h('summary', null, 'Marking scheme & practice'),
       h('div', { class: 'stack', style: { marginTop: '12px' } },
         h('div', { class: 'grid-2' },
@@ -215,15 +220,24 @@ function paperForm(p, { submitLabel, onSubmit, disabled = false }) {
       entry_window_min: Number(f.entry.value), duration_min: Number(f.duration.value),
       scq_correct: Number(f.scqC.value), scq_wrong: Number(f.scqW.value), num_correct: Number(f.numC.value), num_wrong: Number(f.numW.value),
       allow_practice: f.practice.checked,
+      results_release_at: f.releaseLater.checked && f.release.value ? new Date(f.release.value).toISOString() : null,
     };
     if (!fields.title) { err.textContent = 'Give the paper a title.'; return; }
     if (!f.starts.value || !f.ends.value || Date.parse(fields.ends_at) <= Date.parse(fields.starts_at)) { err.textContent = 'Closing time must be after opening time.'; return; }
+    if (f.releaseLater.checked && !f.release.value) { err.textContent = 'Pick the date and time to release results.'; return; }
+    if (fields.results_release_at && Date.parse(fields.results_release_at) <= Date.parse(fields.ends_at)) {
+      err.textContent = 'The results release time must be after the closing time (or untick “Hold results back”).';
+      return;
+    }
     if (Date.parse(fields.ends_at) < Date.parse(fields.starts_at) + fields.duration_min * 60000) {
       if (!(await confirmDialog('The paper closes before a full duration has passed, so students get less time. Continue?'))) return;
     }
     submit.disabled = true;
     try { await onSubmit(fields); } catch (ex) { err.textContent = message(ex); } finally { submit.disabled = disabled; }
   });
+  const syncRelease = () => { f.release.closest('.field').hidden = !f.releaseLater.checked; };
+  f.releaseLater.addEventListener('change', syncRelease);
+  syncRelease();
   return form;
 }
 
@@ -1020,6 +1034,13 @@ async function viewSettings() {
     p.status === 'published' && overview.attempts === 0 ? act('Unpublish', '', async () => { await api.staff.unpublish(p.id); route(); }) : null,
     p.status === 'published' ? act('Archive', '', async () => { await api.staff.archive(p.id, true); route(); }, 'Archive hides the paper from the list. Results stay available to those who took it.') : null,
     p.status === 'archived' ? act('Unarchive', '', async () => { await api.staff.archive(p.id, false); route(); }) : null,
+    p.status !== 'draft' && !p.results_at && p.results_release_at && Date.parse(p.results_release_at) > now
+      ? act('Release results now', 'btn-primary', async () => {
+        const res = await api.staff.updatePaper(p.id, W.paper.version, { results_release_at: new Date().toISOString() });
+        if (res.conflict) { toast('Someone else changed the settings — try again.', 'warn'); route(); return; }
+        toast(now < Date.parse(p.ends_at) ? 'Results will publish as soon as the paper closes.' : 'Releasing — results go live within a minute.', 'success', 6000);
+        route();
+      }, now < Date.parse(p.ends_at) ? 'Results will publish as soon as the paper closes instead of waiting for the release time.' : 'Publish scores, the leaderboard and solutions now?') : null,
     (p.results_at || p.key_changed_at) && !p.flushed_at ? act('Re-score & rebuild results', p.key_changed_at ? 'btn-primary' : '', async () => { const r = await api.staff.rescore(p.id); toast(r.results_rebuilt ? 'Scores and leaderboard rebuilt' : 'Scores recomputed', 'success'); route(); }, 'Recompute every score with the current answer key and rebuild the leaderboard?') : null,
     p.results_at ? act(p.flushed_at ? 'Flush again' : 'Flush personal data', 'btn-danger', async () => {
       const r = await api.staff.flush(p.id);
@@ -1035,7 +1056,8 @@ async function viewSettings() {
         h('span', null, 'Ready: ', h('strong', { class: 'mono' }, `${overview.complete}/75`)),
         h('span', null, 'Verified: ', h('strong', { class: 'mono' }, `${overview.verified}/75`)),
         h('span', null, 'Ranked attempts: ', h('strong', { class: 'mono' }, fmtNum(overview.attempts))),
-        p.results_at ? h('span', null, 'Results built ', fmtDate(p.results_at)) : null),
+        p.results_at ? h('span', null, 'Results published ', fmtDate(p.results_at))
+          : h('span', null, 'Results release: ', h('strong', null, p.results_release_at && Date.parse(p.results_release_at) > Date.parse(p.ends_at) ? fmtDate(p.results_release_at) : 'when the paper closes'))),
       p.flushed_at ? h('div', { class: 'banner banner-info' }, `Personal data flushed ${fmtDate(p.flushed_at)}. Only the leaderboard and question stats remain.`) : null,
       p.key_changed_at && !p.flushed_at ? h('div', { class: 'banner banner-warn' }, 'The answer key changed after results were published. Re-score to update ranks.') : null,
       p.status === 'draft' && now > Date.parse(p.starts_at) ? h('div', { class: 'banner banner-warn' }, 'The opening time has passed. Publishing now opens the paper immediately.') : null,
